@@ -1,0 +1,50 @@
+# === Python / Django ===
+*.py[cod]
+__pycache__/
+*.so
+*.log
+*.pot
+*.mo
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env.bak/
+*.egg-info/
+.eggs/
+
+# Django-specific
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
+local_settings.py
+.env
+.env.*
+
+# Migrations (optional)
+**/migrations/__pycache__/
+**/migrations/*.py[cod]
+# Uncomment the next line if you want to ignore all migration files (sometimes not ideal)
+# **/migrations/
+
+# === Node / JS frontend ===
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.turbo/
+frontend/.next/
+frontend/.cache/
+frontend/yarn.lock
+frontend/package-lock.json # optional, keep if you commit lockfiles
+frontend/.env
+
+# === System / IDE ===
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# === Git ===
+*.orig

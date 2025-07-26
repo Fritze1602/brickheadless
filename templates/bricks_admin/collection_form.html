@@ -1,0 +1,16 @@
+{% extends "admin/base_site.html" %} {% block content %}
+<h1 class="text-2xl font-bold mb-4">
+  Eintrag bearbeiten: {{ collection.label }}
+</h1>
+
+<form method="post" class="space-y-4">
+  {% csrf_token %} {{ form.as_p }}
+  <button class="btn btn-primary">Speichern</button>
+</form>
+
+<a
+  href="{% url 'cms-admin-collection-list' slug=collection.slug %}"
+  class="btn btn-ghost mt-4"
+  >Zurück zur Liste</a
+>
+{% endblock %}

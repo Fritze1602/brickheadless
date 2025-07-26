@@ -1,0 +1,7 @@
+{% comment %}
+  Zentrale Include-Datei für dynamische Felder im Repeater.
+  Diese Datei leitet basierend auf field.type an das passende Feldtemplate weiter.
+  Erwartet: field, name, value
+{% endcomment %}
+
+{% include "bricks_admin/fields/"|add:field.type|add:".html" with field=field name=name value=value %}

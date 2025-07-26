@@ -1,0 +1,64 @@
+{% load static %}
+{% load vite_tags %}
+<!DOCTYPE html>
+<html lang="de">
+  {% load static %}
+  {% load vite_tags %}
+  <head>
+    <meta charset="UTF-8" />
+    <title>{% block title %}Bricks CMS{% endblock %}</title>
+
+    {% if VITE_DEV %}
+      <!-- Vite Dev Client für HMR -->
+      <script type="module" src="http://localhost:5173/@vite/client"></script>
+
+      <!-- Entry Point (korrekter Host!) -->
+      <script type="module">
+        import RefreshRuntime from "http://localhost:5173/@react-refresh";
+        RefreshRuntime.injectIntoGlobalHook(window);
+        window.$RefreshReg$ = () => {};
+        window.$RefreshSig$ = () => (type) => type;
+        window.__vite_plugin_react_preamble_installed__ = true;
+
+        import("http://localhost:5173/src/main.ts");
+      </script>
+    {% else %}
+      <!-- Production Assets via Vite manifest -->
+      <link rel="stylesheet" href="{% vite_asset 'styles.css' %}" />
+      <script type="module" src="{% vite_asset 'app.bundle.js' %}"></script>
+    {% endif %}
+  </head>
+
+  <body class="bg-white text-gray-900 p-6">
+    <header class="flex items-center justify-between border-b mb-6 px-4 py-2 shadow-sm">
+      <div class="flex-1">
+        <a href="{% url 'cms-admin-dashboard' %}" class="text-xl font-bold tracking-tight">
+          BricksCMS
+        </a>
+      </div>
+
+      {% if user.is_authenticated %}
+        <div class="flex-none flex items-center gap-4 text-sm">
+          <span class="text-gray-500 hidden sm:inline">
+            Angemeldet als <strong>{{ user.username }}</strong>
+          </span>
+          <form method="post" action="{% url 'logout' %}" class="inline-block">
+            {% csrf_token %}
+            <button type="submit" class="border px-3 py-1 rounded text-sm hover:bg-gray-100">
+              Logout
+            </button>
+          </form>
+        </div>
+      {% endif %}
+    </header>
+
+    <main>{% block content %}{% endblock %}</main>
+
+    {% if VITE_DEV %}
+      <p>DEVSERVER: TRUE</p>
+    {% else %}
+      <p>DEVSERVER: FALSE</p>
+    {% endif %}
+
+  </body>
+</html>

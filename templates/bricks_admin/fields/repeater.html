@@ -1,0 +1,37 @@
+{% load form_tags %}
+
+<div x-data="repeater()" class="repeater space-y-4">
+  <label class="label">
+    <span class="label-text">{{ field.label }}</span>
+  </label>
+
+  <template x-for="(item, index) in items" :key="index">
+    <div class="border p-4 rounded bg-base-200" x-data="{ open: true }">
+      <div class="flex justify-between items-center mb-2">
+        <span class="font-semibold">Eintrag <span x-text="index + 1"></span></span>
+        <button type="button" class="btn btn-xs" @click="open = !open" x-text="open ? '–' : '+'"></button>
+      </div>
+
+      <div x-show="open" x-transition>
+        {% for subfield in field.fields %}
+          <div class="form-control mb-4">
+            <label class="label">
+              <span class="label-text">{{ subfield.label }}</span>
+            </label>
+            <input
+              type="{% if subfield.type == 'url' %}url{% else %}text{% endif %}"
+              :name="`${name}[${index}][{{ subfield.name }}]`"
+              x-model="item['{{ subfield.name }}']"
+              class="input input-bordered w-full"
+            >
+          </div>
+        {% endfor %}
+        <button type="button" class="btn btn-sm btn-error" @click="remove(index)">Entfernen</button>
+      </div>
+    </div>
+  </template>
+
+  <button type="button" class="btn btn-sm btn-secondary mt-2" @click="add()">+ Eintrag hinzufügen</button>
+</div>
+
+

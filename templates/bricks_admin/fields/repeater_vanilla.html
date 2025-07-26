@@ -1,0 +1,53 @@
+{% load form_tags %}
+
+<div class="repeater">
+  <label class="label">
+    <span class="label-text">{{ field.label }}</span>
+  </label>
+
+  <div data-repeater-items class="space-y-4">
+    {% if value %}
+      {% for item in value %}
+        <div data-repeater-item class="border p-4 rounded bg-base-200">
+          {% for subfield in field.fields %}
+            {% field_name name forloop.parentloop.counter0 subfield.name as input_name %}
+            <div class="form-control mb-4">
+              <label class="label" for="{{ input_name }}">
+                <span class="label-text">{{ subfield.label }}</span>
+              </label>
+              <input
+                type="{% if subfield.type == 'url' %}url{% else %}text{% endif %}"
+                name="{{ input_name }}"
+                id="{{ input_name }}"
+                value="{{ item|get_item:subfield.name }}"
+                class="input input-bordered w-full"
+              >
+            </div>
+          {% endfor %}
+          <button type="button" class="btn btn-sm btn-error remove-item">Entfernen</button>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div data-repeater-item class="border p-4 rounded bg-base-200">
+        {% for subfield in field.fields %}
+          {% field_name name 0 subfield.name as input_name %}
+          <div class="form-control mb-4">
+            <label class="label" for="{{ input_name }}">
+              <span class="label-text">{{ subfield.label }}</span>
+            </label>
+            <input
+              type="{% if subfield.type == 'url' %}url{% else %}text{% endif %}"
+              name="{{ input_name }}"
+              id="{{ input_name }}"
+              value=""
+              class="input input-bordered w-full"
+            >
+          </div>
+        {% endfor %}
+        <button type="button" class="btn btn-sm btn-error remove-item">Entfernen</button>
+      </div>
+    {% endif %}
+  </div>
+
+  <button type="button" class="btn btn-sm btn-secondary mt-2 add-item">+ Eintrag hinzufügen</button>
+</div>

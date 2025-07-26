@@ -1,0 +1,25 @@
+{% extends "bricks_admin/base.html" %}
+{% load form_tags %}
+{% load i18n %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">Edit page: {{ page.label }}</h1>
+
+{% if saved %}
+  <div class="bg-green-100 text-green-800 p-2 rounded mb-4">
+     Page updated successfully at {{ saved_time }} on {{ saved_date }}.
+  </div>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" class="space-y-4">
+  {% csrf_token %}
+  {% for field in fields %}
+    {{ field.html|safe }}
+  {% endfor %}
+  <button class="bg-blue-600 text-white px-4 py-1 rounded-md">Save</button>
+</form>
+
+<a href="{% url 'cms-admin-dashboard' %}" class="btn btn-ghost mt-4">
+  Back to dashboard
+</a>
+{% endblock %}

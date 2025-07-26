@@ -1,0 +1,35 @@
+{% extends "bricks_admin/base.html" %}
+
+{% block title %}Dashboard - Bricks CMS{%endblock %}
+
+{% block content %}
+<h1 class="text-xl font-semibold mb-4">Dashboard</h1>
+
+<h2 class="text-lg font-medium">Seiten</h2>
+<ul class="space-y-1 mb-6">
+  {% for page in pages %}
+  <li>
+    <a
+      href="{% url 'cms-admin-edit-page' slug=page.slug %}"
+      class="link link-primary"
+    >
+      {{ page.label }}
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+
+<h2 class="text-lg font-medium">Collections</h2>
+<ul class="space-y-1">
+  {% for collection in collections %}
+  <li>
+    <a
+      href="{% url 'cms-admin-collection-list' slug=collection.slug %}"
+      class="link link-secondary"
+    >
+      {{ collection.label }}
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{% endblock %}
