@@ -2,7 +2,7 @@
 
 import os
 from django.core.management.base import BaseCommand
-from content.loader import load_definitions_from_module
+from content.management.definition_loader import load_definitions_from_module
 
 GENERATED_FILE = os.path.join("content", "generated_models.py")
 
@@ -13,11 +13,7 @@ class Command(BaseCommand):
     help = "Synchronisiert Collection-Definitionen mit generierten Django-Modellen."
 
     def handle(self, *args, **options):
-        # ⬇️ Definiere hier, aus welcher Datei geladen werden soll
-        _, collections = load_definitions_from_module(
-            "content.pages"
-        )  # oder "content.schema"
-
+        _, collections = load_definitions_from_module("cms")
         with open(GENERATED_FILE, "w", encoding="utf-8") as f:
             f.write(
                 '"""Automatisch generierte Modelle aus BrickHeadless Collection-Definitionen."""\n'
@@ -45,9 +41,9 @@ class Command(BaseCommand):
                             f"    # {field.name}: unsupported field type '{field.type}'\n"
                         )
 
-                f.write("\n    def __str__(self):\n")
+                f.write("\n    def __str__(self) -> str:\n")
                 f.write(
-                    f"        return getattr(self, 'title', '{collection.slug} entry')\n\n"
+                    f"        return str(getattr(self, 'title', '{collection.slug} entry'))\n\n"
                 )
 
         self.stdout.write(

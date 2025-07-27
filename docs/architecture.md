@@ -17,7 +17,12 @@ Bricks is organized around two content types, and one core idea:
 
 - Repeatable types like Projects, Team Members, Jobs
 - Defined in the same file using `Collection(...)`
-- Bricks uses `sync_collections` to generate Django models dynamically
+- Bricks uses `sync_collections` to generate real Django models as Python code
+  (in `content/generated_models.py`), based on `Collection(...)` definitions.
+
+  We explicitly avoid runtime model generation (e.g. via `type()` or factories)
+  to ensure full support for migrations, admin registration, type checking, and IDE integration.
+
 - Full ORM support, database migrations, filters, relations, etc.
 
 ## Admin UI Strategy

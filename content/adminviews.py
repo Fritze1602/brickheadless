@@ -14,7 +14,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.urls import reverse
-from content import pages
+import cms
 from content.models import ContentEntry
 
 from content.schema import Page, Collection
@@ -38,21 +38,22 @@ def dashboard(request):
     """
     Zeigt alle Pages und Collections als Links im CMS-Admin.
     """
-    pages_list = []
-    collections_list = []
+    singleton_collections = []
+    multi_collections = []
 
-    for obj in pages.__dict__.values():
-        if isinstance(obj, Page):
-            pages_list.append(obj)
-        elif isinstance(obj, Collection):
-            collections_list.append(obj)
+    for obj in cms.__dict__.values():
+        if isinstance(obj, Collection):
+            if obj.unique:
+                singleton_collections.append(obj)
+            else:
+                multi_collections.append(obj)
 
     return render(
         request,
         "bricks_admin/dashboard.html",
         {
-            "pages": pages_list,
-            "collections": collections_list,
+            "singleton_collections": singleton_collections,
+            "multi_collections": multi_collections,
         },
     )
 
@@ -64,7 +65,7 @@ def edit_page(request, slug):
     """
     # Passendes Page-Objekt aus pages.py holen
     page_obj = next(
-        obj for obj in pages.__dict__.values() if getattr(obj, "slug", None) == slug
+        obj for obj in cms.__dict__.values() if getattr(obj, "slug", None) == slug
     )
 
     # Content aus der DB holen oder neu anlegen
@@ -114,7 +115,7 @@ def collection_list(request, slug):
     """
     entries = ContentEntry.objects.filter(collection=slug)
     collection_obj = next(
-        obj for obj in pages.__dict__.values() if getattr(obj, "slug", None) == slug
+        obj for obj in cms.__dict__.values() if getattr(obj, "slug", None) == slug
     )
 
     return render(
@@ -131,7 +132,7 @@ def collection_add(request, slug):
     """
     # Das Collection-Schema aus pages.py holen
     collection_obj = next(
-        obj for obj in pages.__dict__.values() if getattr(obj, "slug", None) == slug
+        obj for obj in cms.__dict__.values() if getattr(obj, "slug", None) == slug
     )
 
     # Beim Speichern: Daten extrahieren & speichern
@@ -161,7 +162,7 @@ def collection_edit(request, slug, pk):
     Bearbeitet einen Collection-Eintrag.
     """
     collection_obj = next(
-        obj for obj in pages.__dict__.values() if getattr(obj, "slug", None) == slug
+        obj for obj in cms.__dict__.values() if getattr(obj, "slug", None) == slug
     )
     entry = get_object_or_404(ContentEntry, pk=pk)
 

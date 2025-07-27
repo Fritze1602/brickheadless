@@ -11,18 +11,25 @@ class Collection:
     Models are automatically generated via `sync_collections`, based on these fields.
     """
 
-    def __init__(self, label, singular_label, slug, fields):
+    def __init__(self, label, singular_label, slug, fields, unique=False):
         """
+        Defines a content collection — either repeatable or singleton.
+
         Args:
-            label (str): Human-friendly plural name (e.g. "Projekte").
-            singular_label (str): Singular label for UI ("Projekt").
-            slug (str): Unique identifier for the collection (e.g. "projects").
-            fields (list): A list of field definitions (TextField, URLField etc.)
+            label (str): Human-friendly plural name (e.g. "Projects").
+            singular_label (str): Singular name for UI or button text (e.g. "Project").
+            slug (str): Unique system identifier (e.g. "projects", "homepage").
+            fields (list): A list of field definitions (e.g. TextField, URLField, Repeater).
+            unique (bool, optional):
+                If True, this collection behaves like a singleton ("page").
+                Only one entry will exist and can be edited, not added repeatedly.
+                Default is False (multi-entry collection).
         """
         self.label = label
         self.singular_label = singular_label
         self.slug = slug
         self.fields = fields
+        self.unique = unique
         self.type = "collection"
 
 
