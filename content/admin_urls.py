@@ -7,16 +7,20 @@ from django.contrib.auth.views import LogoutView
 from content import adminviews
 
 urlpatterns = [
-    path("cms-admin/login/", adminviews.BricksCMSLoginView.as_view(), name="login"),
-    path("cms-admin/logout/", LogoutView.as_view(next_page="login"), name="logout"),
+    path("login/", adminviews.BricksCMSLoginView.as_view(), name="login"),
+    path("logout/", LogoutView.as_view(next_page="login"), name="logout"),
     path("", adminviews.dashboard, name="cms-admin-dashboard"),
-    path("page/<slug:slug>/", adminviews.edit_page, name="cms-admin-edit-page"),
     path(
-        "cms-admin/collections/",
+        "cms-admin/singles/<slug:slug>/",
+        adminviews.edit_page,
+        name="cms-admin-edit-page",
+    ),
+    path(
+        "collections/",
         adminviews.collection_list,
         name="cms-admin-collection-overview",
     ),
-    path("cms-admin/singles/", adminviews.single_list, name="cms-admin-single-list"),
+    path("singles/", adminviews.single_list, name="cms-admin-single-list"),
     path(
         "collection/<slug:slug>/",
         adminviews.collection_list,

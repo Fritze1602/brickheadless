@@ -50,7 +50,9 @@
 
     <!-- Layout -->
     <div class="flex h-[calc(100vh-64px)]">
-      {% include "bricks_admin/_sidebar.html" %}
+      {% if request.user.is_authenticated %}
+        {% include "bricks_admin/_sidebar.html" %}
+      {% endif %}
 
       <main class="flex-1 p-8 overflow-y-auto">
         {% block page_content %}{% endblock %}

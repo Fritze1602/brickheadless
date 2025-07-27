@@ -1,13 +1,23 @@
-# content/form_renderer.py
+"""
+Renders a field by matching its type to a template.
+"""
 
 from django.template.loader import render_to_string
 
 
 def render_field(field, name=None, value=None):
     """
-    Rendert ein Feld (text, url, repeater) via Template.
+    Renders a field using its admin template.
+
+    Args:
+        field (BaseField): Field definition from schema (cms.py)
+        name (str, optional): Input name used in the form (defaults to field.name)
+        value (Any, optional): Pre-filled value (defaults to "")
+
+    Returns:
+        str: Rendered HTML for the admin UI
     """
-    name = name or field.name  # ⬅ fallback für Templates, die "name" nicht setzen
+    name = name or field.name  # fallback for templates that expect "name"
     value = value or ""
 
     return render_to_string(
@@ -22,18 +32,23 @@ def render_field(field, name=None, value=None):
 
 def extract_data(fields, post_data, files_data):
     """
-    Extrahiert Formulardaten gemäß Felddefinition.
+    Extracts form data from a POST request based on BrickField definitions.
 
-    Unterstützt: text, url, repeater.
-    Repeater-Felder werden anhand des Namenschemas wie 'ctas[0][text]' zu Listen geparst.
+    Supported field types: text, url, relation, repeater.
+    Repeater fields are parsed using the naming scheme like 'ctas[0][text]'.
 
-    Rückgabe: Dictionary mit strukturierten Werten passend zum Pages-Schema.
+    Returns:
+        dict: Structured values matching the page or collection schema.
     """
     result = {}
 
     for field in fields:
         if field.type in ("text", "url"):
             result[field.name] = post_data.get(field.name)
+
+        elif field.type == "relation":
+            # Multi-select checkbox values
+            result[field.name] = post_data.getlist(field.name)
 
         elif field.type == "repeater":
             prefix = field.name + "["

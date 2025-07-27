@@ -1,54 +1,49 @@
-{% extends "admin/base.html" %}
+{% extends "bricks_admin/base.html" %}
 {% block title %}Login – Bricks CMS{% endblock %}
 
 {% block content %}
-<div class="flex justify-center items-center min-h-[70vh]">
-  <div class="card w-full max-w-md shadow-xl bg-base-200">
-    <div class="card-body">
-      <h2 class="card-title text-2xl justify-center">BricksCMS Login</h2>
+<div class="flex justify-center items-center min-h-[70vh] px-4">
+  <div class="w-full max-w-md bg-white shadow-md rounded-xl p-6 border border-gray-200">
+    <h2 class="text-2xl font-semibold text-center mb-6">BricksCMS Login</h2>
 
-      {% if form.errors %}
-      <div class="alert alert-error mt-4 mb-2">
-        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        <span>Login fehlgeschlagen. Benutzername oder Passwort falsch.</span>
+    {% if form.errors %}
+      <div class="mb-4 rounded-md bg-red-100 text-red-800 px-4 py-3 text-sm border border-red-300">
+        <p>Login fehlgeschlagen. Benutzername oder Passwort falsch.</p>
       </div>
-      {% endif %}
+    {% endif %}
 
-    <form method="post" autocomplete="off">
-        {% csrf_token %}
+    <form method="post" autocomplete="off" class="space-y-4">
+      {% csrf_token %}
 
-        <div class="form-control">
-            <label for="id_username" class="label">
-            <span class="label-text">Benutzername</span>
-            </label>
-            <input type="text"
-                name="username"
-                id="id_username"
-                class="input input-bordered w-full"
-                autocomplete="off"
-                spellcheck="false"
-                required />
-        </div>
+      <div>
+        <label for="id_username" class="block text-sm font-medium text-gray-700 mb-1">Benutzername</label>
+        <input type="text"
+               name="username"
+               id="id_username"
+               required
+               class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+               autocomplete="off"
+               spellcheck="false" />
+      </div>
 
-        <div class="form-control mt-4">
-            <label for="id_password" class="label">
-            <span class="label-text">Passwort</span>
-            </label>
-            <input type="password"
-                name="password"
-                id="id_password"
-                class="input input-bordered w-full"
-                autocomplete="off"
-                spellcheck="false"
-                required />
-        </div>
+      <div>
+        <label for="id_password" class="block text-sm font-medium text-gray-700 mb-1">Passwort</label>
+        <input type="password"
+               name="password"
+               id="id_password"
+               required
+               class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+               autocomplete="off"
+               spellcheck="false" />
+      </div>
 
-        <div class="form-control mt-6">
-            <button type="submit" class="btn btn-primary w-full">Einloggen</button>
-        </div>
-</form>
-
-    </div>
+      <div>
+        <button type="submit"
+                class="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 transition-colors duration-150">
+          Einloggen
+        </button>
+      </div>
+    </form>
   </div>
 </div>
 {% endblock %}

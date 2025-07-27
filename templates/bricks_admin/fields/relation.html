@@ -1,0 +1,11 @@
+{# RelationField UI mount point for hydration #}
+
+<div
+  class="bricks-relation"
+  data-field-type="relation"
+  data-name="{{ field.name }}"
+  data-many="{{ field.many|yesno:'true,false' }}"
+  data-source="/api/collections/{{ field.to }}/"
+>
+  <!-- React mounts here -->
+</div>

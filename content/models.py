@@ -1,6 +1,7 @@
 """Datenmodelle für BrickHeadless: Pages + generierte Collections."""
 
 import sys
+import shortuuid
 from django.db import models
 from . import generated_models
 
@@ -10,19 +11,26 @@ from . import generated_models
 
 class ContentEntry(models.Model):
     """
-    Einfache Seiten wie Homepage, Kontakt, Impressum etc.
+    A single page (e.g. homepage, about, imprint).
 
-    Speichert:
-    - slug: z. B. 'homepage'
-    - collection: z. B. 'homepage'
-    - data: JSON mit allen Feldern
+    Each page is stored as structured JSON under a unique slug.
     """
+
+    id = models.AutoField(primary_key=True)
+    bricks_id = models.CharField(
+        max_length=22,
+        default=shortuuid.uuid(),
+        # unique=True,
+        editable=False,
+        null=True,
+    )
 
     slug = models.SlugField(unique=True)
     collection = models.CharField(max_length=100, null=True, blank=True)
     data = models.JSONField()
 
-    objects = models.Manager()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.collection}: {self.slug}"

@@ -1,42 +1,26 @@
-"""BrickHeadless Field-Definitions.
+"""
+BrickHeadless Field-Definitions.
 Carbon-Fields-Style DSL for Headless CMS in Django.
 """
 
 
-class Collection:
-    """
-    Defines a repeatable content type (e.g. Blog, Projekte, Mitarbeiter).
-
-    Used in brickschema/pages.py to describe a group of entries that follow the same field schema.
-    Models are automatically generated via `sync_collections`, based on these fields.
-    """
-
-    def __init__(self, label, singular_label, slug, fields, unique=False):
-        """
-        Defines a content collection — either repeatable or singleton.
-
-        Args:
-            label (str): Human-friendly plural name (e.g. "Projects").
-            singular_label (str): Singular name for UI or button text (e.g. "Project").
-            slug (str): Unique system identifier (e.g. "projects", "homepage").
-            fields (list): A list of field definitions (e.g. TextField, URLField, Repeater).
-            unique (bool, optional):
-                If True, this collection behaves like a singleton ("page").
-                Only one entry will exist and can be edited, not added repeatedly.
-                Default is False (multi-entry collection).
-        """
-        self.label = label
-        self.singular_label = singular_label
-        self.slug = slug
-        self.fields = fields
-        self.unique = unique
-        self.type = "collection"
-
-
 class BaseField:
-    """Base Field Class for BrickHeadless."""
+    """
+    Base class for all schema fields.
+
+    Used to define the structure of content types
+    (e.g. TextField, URLField, RelationField, etc.)
+    """
 
     def __init__(self, label, name, required=True, default=None, help_text=None):
+        """
+        Args:
+            label (str): Human-readable label (used in admin UI).
+            name (str): Internal name (used as key in JSON/API/model).
+            required (bool): Whether this field must be filled.
+            default (Any): Optional default value.
+            help_text (str, optional): Additional info for UI or documentation.
+        """
         self.label = label
         self.name = name
         self.required = required
@@ -45,46 +29,128 @@ class BaseField:
 
 
 class TextField(BaseField):
-    """Text Field."""
+    """Simple text field (single-line)."""
 
     type = "text"
 
 
-class ImageField(BaseField):
-    """Image Field. Muss total anders werden?"""
-
-    type = "media"
-
-
 class URLField(BaseField):
-    """URL Field."""
+    """A URL field for external or internal links."""
 
     type = "url"
 
 
+class ImageField(BaseField):
+    """
+    Image/media field.
+
+    Should store: URL, alt-text, dimensions, optionally crop/variant info.
+    """
+
+    type = "media"
+
+
+class Repeater(BaseField):
+    """
+    A repeatable group of fields (array of items).
+
+    Example:
+        - Gallery images
+        - List of team members
+    """
+
+    type = "repeater"
+
+    def __init__(self, label, name, fields, **kwargs):
+        """
+        Args:
+            fields (list): A list of sub-fields inside this repeater.
+        """
+        super().__init__(label, name, **kwargs)
+        self.fields = fields
+
+
+class RelationField(BaseField):
+    """
+    A relation to another collection (1:n or n:n).
+
+    Used to define references between entries.
+    """
+
+    type = "relation"
+
+    def __init__(self, label, name, to, many=False, **kwargs):
+        """
+        Args:
+            to (str): Target collection slug (e.g. "categories").
+            many (bool): True for ManyToMany, False for ForeignKey.
+        """
+        super().__init__(label, name, **kwargs)
+        self.to = to
+        self.many = many
+
+
 class FieldGroup:
-    """Visual group of fields (purely for UI layout)."""
+    """
+    A visual grouping of fields (used for admin UI layout only).
+
+    Does not affect database or API structure.
+    """
 
     def __init__(self, label, fields):
+        """
+        Args:
+            label (str): Group headline for UI.
+            fields (list): List of BaseField objects.
+        """
         self.label = label
         self.fields = fields
         self.type = "group"
 
 
-class Repeater(BaseField):
-    """Repeater Field."""
-
-    type = "repeater"
-
-    def __init__(self, label, name, fields, **kwargs):
-        super().__init__(label, name, **kwargs)
-        self.fields = fields  # ✅ Instanz-Attribut
-
-
 class Page:
-    """A Page with a slug and fields."""
+    """
+    Defines a single, unique content entry (singleton).
+
+    Examples:
+        - Homepage
+        - About
+        - Imprint
+
+    Only one instance will exist for this schema.
+    """
 
     def __init__(self, label, slug, fields):
+        """
+        Args:
+            label (str): Human-friendly name (e.g. "About Page").
+            slug (str): Unique identifier (e.g. "about").
+            fields (list): List of BaseField instances.
+        """
         self.label = label
         self.slug = slug
         self.fields = fields
+
+
+class Collection:
+    """
+    Defines a repeatable content type (e.g. Blogposts, Projekte, Team).
+
+    Can be used as regular entries (multi) or as singleton ("page mode").
+    """
+
+    def __init__(self, label, singular_label, slug, fields, unique=False):
+        """
+        Args:
+            label (str): Plural name (e.g. "Projects").
+            singular_label (str): Singular name (e.g. "Project").
+            slug (str): Identifier for model, admin, and API (e.g. "projects").
+            fields (list): List of BaseField instances.
+            unique (bool): If True, acts like a singleton Page.
+        """
+        self.label = label
+        self.singular_label = singular_label
+        self.slug = slug
+        self.fields = fields
+        self.unique = unique
+        self.type = "collection"

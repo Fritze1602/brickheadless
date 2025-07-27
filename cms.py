@@ -5,12 +5,7 @@ Define your Pages and Collections here.
 This replaces manual Content-Type clicking (e.g. Strapi or Carbon Fields).
 """
 
-from content.schema import (
-    Collection,
-    Repeater,
-    TextField,
-    URLField,
-)
+from content.schema import Collection, Repeater, TextField, URLField, RelationField
 
 homepage = Collection(
     label="Homepage",
@@ -53,6 +48,7 @@ projects = Collection(
         TextField("Titel", "title"),
         TextField("Beschreibung", "description"),
         URLField("URL", "url"),
+        RelationField("Kategorien", "categories", to="categories", many=True),
     ],
 )
 

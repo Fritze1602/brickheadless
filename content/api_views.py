@@ -7,12 +7,14 @@ Stellt die Headless JSON-API bereit für:
 """
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import Http404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from content.models import ContentEntry
+from content import generated_models
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 def page_detail(_request, slug):
     """
     Gibt eine einzelne Seite als JSON zurück.
@@ -28,11 +30,22 @@ def page_detail(_request, slug):
         return Response({"error": "Not found"}, status=404)
 
 
+@api_view(["GET"])
+def dynamic_collection_list(_request, slug):
+    """
+    Returns all entries for a collection.
 
-@api_view(['GET'])
-def collection_list(_request, slug):
+    Collection must be defined via `Collection(...)` in `cms.py`.
     """
-    Gibt eine Collection als JSON-Liste zurück.
-    """
-    entries = ContentEntry.objects.filter(collection=slug)
-    return Response([entry.data for entry in entries])
+    model_name = f"{slug.capitalize()}Entry"
+    model = getattr(generated_models, model_name, None)
+    if not model:
+        raise Http404(f"No collection model found for slug '{slug}'")
+
+    entries = model.objects.all()
+    return Response(
+        [
+            {field.name: getattr(entry, field.name) for field in entry._meta.fields}
+            for entry in entries
+        ]
+    )

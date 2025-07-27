@@ -217,14 +217,15 @@ def add_collection_entry(request, slug):
 @login_required
 def edit_collection_entry(request, slug, pk):
     """
-    BricksCMS: Bearbeitet einen bestehenden Collection-Eintrag (unique=False).
+    Edits an existing collection entry in BricksCMS (unique=False).
 
-    - Holt Collection-Schema aus cms.py
-    - Holt Modelklasse + Objekt anhand des Slugs & PK
-    - Rendert Felder mit bestehenden Werten
-    - Speichert Änderungen über extract_data + update
+    - Loads schema from `cms.py` based on slug
+    - Resolves model and instance by slug and primary key
+    - Renders fields with current values
+    - On POST, extracts data and updates instance
+    - Supports saving ManyToMany relations via .set([...])
     """
-    # Collection-Schema holen
+    # Load collection schema from cms.py
     collection = next(
         (
             obj
@@ -234,18 +235,25 @@ def edit_collection_entry(request, slug, pk):
         None,
     )
     if not collection or collection.unique:
-        raise Http404("Unbekannte oder unzulässige Collection.")
+        raise Http404("Unknown or invalid collection.")
 
     model_class = get_model_for_slug(slug)
     if not model_class:
-        raise Http404("Kein Modell gefunden.")
+        raise Http404("No model found for this collection.")
 
     instance = get_object_or_404(model_class, pk=pk)
 
     if request.method == "POST":
         data = extract_data(collection.fields, request.POST, request.FILES)
+
+        # Handle regular + many-to-many fields
         for key, value in data.items():
-            setattr(instance, key, value)
+            field = instance._meta.get_field(key)
+            if field.many_to_many:
+                getattr(instance, key).set(value)
+            else:
+                setattr(instance, key, value)
+
         instance.save()
         redirect_url = (
             reverse("cms-admin-collection-edit", kwargs={"slug": slug, "pk": pk})
