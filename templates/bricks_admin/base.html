@@ -2,8 +2,6 @@
 {% load vite_tags %}
 <!DOCTYPE html>
 <html lang="de">
-  {% load static %}
-  {% load vite_tags %}
   <head>
     <meta charset="UTF-8" />
     <title>{% block title %}Bricks CMS{% endblock %}</title>
@@ -11,26 +9,24 @@
     {% if VITE_DEV %}
       <!-- Vite Dev Client für HMR -->
       <script type="module" src="http://localhost:5173/@vite/client"></script>
-
-      <!-- Entry Point (korrekter Host!) -->
       <script type="module">
         import RefreshRuntime from "http://localhost:5173/@react-refresh";
         RefreshRuntime.injectIntoGlobalHook(window);
         window.$RefreshReg$ = () => {};
         window.$RefreshSig$ = () => (type) => type;
         window.__vite_plugin_react_preamble_installed__ = true;
-
         import("http://localhost:5173/src/main.ts");
       </script>
     {% else %}
-      <!-- Production Assets via Vite manifest -->
       <link rel="stylesheet" href="{% vite_asset 'styles.css' %}" />
       <script type="module" src="{% vite_asset 'app.bundle.js' %}"></script>
     {% endif %}
   </head>
 
-  <body class="bg-white text-gray-900 p-6">
-    <header class="flex items-center justify-between border-b mb-6 px-4 py-2 shadow-sm">
+  <body class="bg-white text-gray-900">
+
+    <!-- Header -->
+    <header class="flex items-center justify-between border-b px-6 py-3 shadow-sm">
       <div class="flex-1">
         <a href="{% url 'cms-admin-dashboard' %}" class="text-xl font-bold tracking-tight">
           BricksCMS
@@ -52,13 +48,20 @@
       {% endif %}
     </header>
 
-    <main>{% block content %}{% endblock %}</main>
+    <!-- Layout -->
+    <div class="flex h-[calc(100vh-64px)]">
+      {% include "bricks_admin/_sidebar.html" %}
 
-    {% if VITE_DEV %}
-      <p>DEVSERVER: TRUE</p>
+      <main class="flex-1 p-8 overflow-y-auto">
+        {% block page_content %}{% endblock %}
+      </main>
+    </div>
+
+    {% comment %} {% if VITE_DEV %}
+      <p class="text-xs text-gray-400 text-center mt-4">DEVSERVER: TRUE</p>
     {% else %}
-      <p>DEVSERVER: FALSE</p>
-    {% endif %}
+      <p class="text-xs text-gray-400 text-center mt-4">DEVSERVER: FALSE</p>
+    {% endif %} {% endcomment %}
 
   </body>
 </html>

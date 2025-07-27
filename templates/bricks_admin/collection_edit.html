@@ -1,27 +1,24 @@
 {% extends "bricks_admin/base.html" %}
-{% load form_tags %}
-{% load i18n %}
 
-{% block title %}{{ page.label }} bearbeiten - Bricks CMS{% endblock %}
+{% block title %}{{ collection.singular_label }} anlegen{% endblock %}
 
 {% block page_content %}
-  <h1 class="text-2xl font-bold mb-4">Edit page: {{ page.label }}</h1>
+  <h1 class="text-2xl font-bold mb-4">{{ collection.singular_label }} anlegen</h1>
 
   {% if saved %}
     <div class="bg-green-100 text-green-800 p-2 rounded mb-4">
       Page updated successfully at {{ saved_time }} on {{ saved_date }}.
     </div>
   {% endif %}
-
   <form method="post" enctype="multipart/form-data" class="space-y-4">
     {% csrf_token %}
     {% for field in fields %}
       {{ field.html|safe }}
     {% endfor %}
-    <button class="bg-blue-600 text-white px-4 py-1 rounded-md">Save</button>
+    <button class="bg-blue-600 text-white px-4 py-2 rounded">Speichern</button>
   </form>
 
-  <a href="{% url 'cms-admin-dashboard' %}" class="text-sm text-gray-600 hover:underline block mt-4">
-    ← Zurück zum Dashboard
+  <a href="{% url 'cms-admin-collection-list' slug=collection.slug %}" class="text-sm text-gray-600 hover:underline block mt-4">
+    ← Zurück zur Liste
   </a>
 {% endblock %}

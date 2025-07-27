@@ -8,16 +8,18 @@ Dazu gehören:
 - Collections verwalten (List/Add/Edit für Collection-Einträge)
 """
 
+import django
 from django.utils.timezone import now, localtime
-from django.http import HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.urls import reverse
+from django.conf import settings as django_settings
 import cms
 from content.models import ContentEntry
-
-from content.schema import Page, Collection
+from content.model_utils import get_model_for_slug
+from content.schema import Collection
 
 
 from content.form_renderer import render_field, extract_data  # wichtig!
@@ -54,6 +56,26 @@ def dashboard(request):
         {
             "singleton_collections": singleton_collections,
             "multi_collections": multi_collections,
+        },
+    )
+
+
+@login_required
+def single_list(request):
+    from content.schema import Collection
+    import cms
+
+    singles = []
+
+    for obj in cms.__dict__.values():
+        if isinstance(obj, Collection) and getattr(obj, "unique", False):
+            singles.append(obj)
+
+    return render(
+        request,
+        "bricks_admin/single_list.html",
+        {
+            "singleton_collections": singles,
         },
     )
 
@@ -111,68 +133,162 @@ def edit_page(request, slug):
 @login_required
 def collection_list(request, slug):
     """
-    Zeigt eine Liste von Collection-Einträgen.
+    Zeigt alle Einträge einer multiple Collection (unique=False),
+    basierend auf dem generierten SQL-Modell (z. B. ProjectsEntry).
     """
-    entries = ContentEntry.objects.filter(collection=slug)
     collection_obj = next(
-        obj for obj in cms.__dict__.values() if getattr(obj, "slug", None) == slug
+        (
+            obj
+            for obj in cms.__dict__.values()
+            if isinstance(obj, Collection) and obj.slug == slug
+        ),
+        None,
     )
+
+    if not collection_obj or collection_obj.unique:
+        raise Http404("Collection nicht gefunden oder ist eine Einzelseite.")
+
+    model_class = get_model_for_slug(slug)
+    if not model_class:
+        raise Http404("Kein generiertes Modell für diese Collection gefunden.")
+
+    entries = model_class.objects.all()
 
     return render(
         request,
-        "admin/collection_list.html",
-        {"entries": entries, "collection": collection_obj},
+        "bricks_admin/collection_list.html",
+        {
+            "collection": collection_obj,
+            "entries": entries,
+        },
     )
 
 
 @login_required
-def collection_add(request, slug):
+def add_collection_entry(request, slug):
     """
-    Fügt einen neuen Collection-Eintrag hinzu.
+    BricksCMS: Fügt einen neuen Eintrag zu einer Collection hinzu (nur für unique=False).
+
+    - Holt das Collection-Schema aus cms.py anhand des Slugs
+    - Lädt das zugehörige generierte SQL-Modell (ProjectsEntry, etc.)
+    - Rendert alle definierten Felder
+    - Speichert nach POST direkt als echte SQL-Instanz
     """
-    # Das Collection-Schema aus pages.py holen
-    collection_obj = next(
-        obj for obj in cms.__dict__.values() if getattr(obj, "slug", None) == slug
+    # Collection-Schema aus cms.py finden
+    collection = next(
+        (
+            obj
+            for obj in cms.__dict__.values()
+            if isinstance(obj, Collection) and obj.slug == slug
+        ),
+        None,
     )
 
-    # Beim Speichern: Daten extrahieren & speichern
+    if not collection or collection.unique:
+        raise Http404("Collection nicht gefunden oder ist keine multiple Collection.")
+
+    # Zuordnung slug → generiertes Modell
+    model_class = get_model_for_slug(slug)
+    if not model_class:
+        raise Http404("Kein generiertes Modell für diese Collection gefunden.")
+
+    # Speichern bei POST
     if request.method == "POST":
-        data = extract_data(collection_obj.fields, request.POST, request.FILES)
-        ContentEntry.objects.create(
-            slug="", collection=slug, data=data  # bleibt leer bei Collections
-        )
+        data = extract_data(collection.fields, request.POST, request.FILES)
+        model_class.objects.create(**data)
         return redirect("cms-admin-collection-list", slug=slug)
 
-    # Felder rendern
-    rendered_fields = []
-    for field in collection_obj.fields:
-        html = render_field(field, field.name, None)
-        rendered_fields.append({"label": field.label, "html": html})
+    # Felder rendern für das Template
+    rendered_fields = [
+        {"label": f.label, "html": render_field(f, f.name, None)}
+        for f in collection.fields
+    ]
 
     return render(
         request,
-        "bricks_admin/collection_form.html",
-        {"fields": rendered_fields, "collection": collection_obj},
+        "bricks_admin/collection_edit.html",
+        {
+            "collection": collection,
+            "fields": rendered_fields,
+        },
     )
 
 
 @login_required
-def collection_edit(request, slug, pk):
+def edit_collection_entry(request, slug, pk):
     """
-    Bearbeitet einen Collection-Eintrag.
-    """
-    collection_obj = next(
-        obj for obj in cms.__dict__.values() if getattr(obj, "slug", None) == slug
-    )
-    entry = get_object_or_404(ContentEntry, pk=pk)
+    BricksCMS: Bearbeitet einen bestehenden Collection-Eintrag (unique=False).
 
-    if request.method == "POST" and form.is_valid():
-        entry.data = form.cleaned_data
-        entry.save()
-        return redirect("cms-admin-collection-list", slug=slug)
+    - Holt Collection-Schema aus cms.py
+    - Holt Modelklasse + Objekt anhand des Slugs & PK
+    - Rendert Felder mit bestehenden Werten
+    - Speichert Änderungen über extract_data + update
+    """
+    # Collection-Schema holen
+    collection = next(
+        (
+            obj
+            for obj in cms.__dict__.values()
+            if isinstance(obj, Collection) and obj.slug == slug
+        ),
+        None,
+    )
+    if not collection or collection.unique:
+        raise Http404("Unbekannte oder unzulässige Collection.")
+
+    model_class = get_model_for_slug(slug)
+    if not model_class:
+        raise Http404("Kein Modell gefunden.")
+
+    instance = get_object_or_404(model_class, pk=pk)
+
+    if request.method == "POST":
+        data = extract_data(collection.fields, request.POST, request.FILES)
+        for key, value in data.items():
+            setattr(instance, key, value)
+        instance.save()
+        redirect_url = (
+            reverse("cms-admin-collection-edit", kwargs={"slug": slug, "pk": pk})
+            + "?saved=1"
+        )
+        return HttpResponseRedirect(redirect_url)
+
+    rendered_fields = [
+        {
+            "label": field.label,
+            "html": render_field(
+                field, field.name, getattr(instance, field.name, None)
+            ),
+        }
+        for field in collection.fields
+    ]
 
     return render(
         request,
-        "admin/collection_form.html",
-        {"form": form, "collection": collection_obj},
+        "bricks_admin/collection_edit.html",
+        {
+            "collection": collection,
+            "fields": rendered_fields,
+            "edit_mode": True,
+            "entry": instance,
+        },
+    )
+
+
+@login_required
+def settings_page(request):
+    """
+    Bricks Admin: Displays system info, Django version, and registered content types.
+    """
+
+    collections = [obj for obj in cms.__dict__.values() if isinstance(obj, Collection)]
+
+    return render(
+        request,
+        "bricks_admin/settings.html",
+        {
+            "collections": collections,
+            "django_version": django.get_version(),
+            "vite_dev": getattr(django_settings, "VITE_DEV", False),
+        },
     )

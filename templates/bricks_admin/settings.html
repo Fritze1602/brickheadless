@@ -1,0 +1,22 @@
+{% extends "bricks_admin/base.html" %}
+
+{% block title %}Einstellungen & Status{% endblock %}
+
+{% block page_content %}
+  <h1 class="text-2xl font-semibold mb-6">Systemstatus & Einstellungen</h1>
+
+  <ul class="space-y-2 text-sm">
+    <li><strong>Devserver:</strong> {{ vite_dev|yesno:"Aktiv,Inaktiv" }}</li>
+    <li><strong>Django Version:</strong> {{ django_version }}</li>
+    <li><strong>Installierte Content-Types:</strong> {{ collections|length }}</li>
+  </ul>
+
+  <hr class="my-6">
+
+  <h2 class="text-lg font-semibold mb-2">Content-Definitionen</h2>
+  <ul class="list-disc list-inside text-sm">
+    {% for c in collections %}
+    <li>{{ c.label }} (slug: {{ c.slug }}, {% if c.unique %}Einzelseite{% else %}Collection{% endif %})</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

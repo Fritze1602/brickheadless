@@ -1,0 +1,54 @@
+<aside class="w-64 border-r border-gray-200 p-4 text-sm">
+  <nav class="space-y-6">
+
+    <!-- Dashboard -->
+    <div>
+      <a href="{% url 'cms-admin-dashboard' %}" class="text-blue-600 font-medium">
+        🧱 Dashboard
+      </a>
+    </div>
+
+    <!-- Einzelseiten -->
+    <div>
+      <h2 class="uppercase text-gray-500 text-xs font-semibold tracking-wider mb-2">
+        Einzelseiten
+      </h2>
+      <ul class="space-y-1">
+        <li>
+          <a href="{% url 'cms-admin-single-list' %}" class="text-blue-600 hover:underline">
+            Einzelseiten verwalten
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Multiples -->
+    <div>
+      <h2 class="uppercase text-gray-500 text-xs font-semibold tracking-wider mb-2">
+        Inhalte
+      </h2>
+      <ul class="space-y-1">
+        {% for collection in multi_collections %}
+        <li>
+          <a href="{% url 'cms-admin-collection-list' slug=collection.slug %}" class="text-blue-600 hover:underline">
+            {{ collection.label }}
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div>
+      <h2 class="uppercase text-gray-500 text-xs font-semibold tracking-wider mb-2">
+        System
+      </h2>
+      <ul>
+        <li>
+          <a href="{% url 'cms-admin-settings' %}" class="text-blue-600 hover:underline">
+            Einstellungen & Status
+          </a>
+        </li>
+      </ul>
+    </div>
+
+  </nav>
+</aside>

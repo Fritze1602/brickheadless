@@ -12,18 +12,25 @@ urlpatterns = [
     path("", adminviews.dashboard, name="cms-admin-dashboard"),
     path("page/<slug:slug>/", adminviews.edit_page, name="cms-admin-edit-page"),
     path(
+        "cms-admin/collections/",
+        adminviews.collection_list,
+        name="cms-admin-collection-overview",
+    ),
+    path("cms-admin/singles/", adminviews.single_list, name="cms-admin-single-list"),
+    path(
         "collection/<slug:slug>/",
         adminviews.collection_list,
         name="cms-admin-collection-list",
     ),
     path(
         "collection/<slug:slug>/add/",
-        adminviews.collection_add,
+        adminviews.add_collection_entry,
         name="cms-admin-collection-add",
     ),
     path(
-        "collection/<slug:slug>/<int:pk>/edit/",
-        adminviews.collection_edit,
+        "cms-admin/collection/<slug:slug>/edit/<int:pk>/",
+        adminviews.edit_collection_entry,
         name="cms-admin-collection-edit",
     ),
+    path("cms-admin/settings/", adminviews.settings_page, name="cms-admin-settings"),
 ]

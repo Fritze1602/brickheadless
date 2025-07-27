@@ -1,0 +1,16 @@
+{% extends "bricks_admin/base.html" %}
+
+{% block title %}Einzelseiten verwalten{% endblock %}
+
+{% block page_content %}
+  <h1 class="text-xl font-semibold mb-4">Einzelseiten verwalten</h1>
+  <ul class="space-y-2">
+    {% for page in singleton_collections %}
+    <li>
+      <a href="{% url 'cms-admin-edit-page' slug=page.slug %}" class="text-blue-600 hover:underline">
+        {{ page.label }}
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

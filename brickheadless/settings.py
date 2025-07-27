@@ -77,6 +77,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "brickheadless.context_processors.vite_context",
+                "content.context_processors.inject_multi_collections",
             ],
         },
     },
