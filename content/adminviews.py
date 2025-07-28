@@ -195,14 +195,40 @@ def add_collection_entry(request, slug):
     # Speichern bei POST
     if request.method == "POST":
         data = extract_data(collection.fields, request.POST, request.FILES)
-        model_class.objects.create(**data)
+
+        instance = model_class.objects.create(
+            **{
+                k: v
+                for k, v in data.items()
+                if not getattr(model_class._meta.get_field(k), "many_to_many", False)
+            }
+        )
+
+        # Many-to-many Felder separat setzen
+        for key, value in data.items():
+            field = model_class._meta.get_field(key)
+            if field.many_to_many:
+                getattr(instance, key).set(value)
+
         return redirect("cms-admin-collection-list", slug=slug)
 
-    # Felder rendern für das Template
-    rendered_fields = [
-        {"label": f.label, "html": render_field(f, f.name, None)}
-        for f in collection.fields
-    ]
+    # Felder rendern für das Template (inkl. Optionen für RelationFields)
+    rendered_fields = []
+    for field in collection.fields:
+        value = None
+        options = None
+
+        if field.type == "relation":
+            related_model = get_model_for_slug(field.to)
+            if related_model:
+                options = related_model.objects.all()
+
+        rendered_fields.append(
+            {
+                "label": field.label,
+                "html": render_field(field, field.name, value, options=options),
+            }
+        )
 
     return render(
         request,
@@ -210,22 +236,13 @@ def add_collection_entry(request, slug):
         {
             "collection": collection,
             "fields": rendered_fields,
+            "edit_mode": True,
         },
     )
 
 
 @login_required
 def edit_collection_entry(request, slug, pk):
-    """
-    Edits an existing collection entry in BricksCMS (unique=False).
-
-    - Loads schema from `cms.py` based on slug
-    - Resolves model and instance by slug and primary key
-    - Renders fields with current values
-    - On POST, extracts data and updates instance
-    - Supports saving ManyToMany relations via .set([...])
-    """
-    # Load collection schema from cms.py
     collection = next(
         (
             obj
@@ -245,15 +262,12 @@ def edit_collection_entry(request, slug, pk):
 
     if request.method == "POST":
         data = extract_data(collection.fields, request.POST, request.FILES)
-
-        # Handle regular + many-to-many fields
         for key, value in data.items():
             field = instance._meta.get_field(key)
             if field.many_to_many:
                 getattr(instance, key).set(value)
             else:
                 setattr(instance, key, value)
-
         instance.save()
         redirect_url = (
             reverse("cms-admin-collection-edit", kwargs={"slug": slug, "pk": pk})
@@ -261,15 +275,36 @@ def edit_collection_entry(request, slug, pk):
         )
         return HttpResponseRedirect(redirect_url)
 
-    rendered_fields = [
-        {
-            "label": field.label,
-            "html": render_field(
-                field, field.name, getattr(instance, field.name, None)
-            ),
-        }
-        for field in collection.fields
-    ]
+    def get_initial_value(field):
+        if field.type == "relation" and field.many:
+            rel = getattr(instance, field.name, None)
+            if rel is not None:
+                ids = list(rel.values_list("id", flat=True))
+                print(
+                    f"✅ value for {field.name}: {ids} (type: {type(ids[0]).__name__ if ids else 'empty'})"
+                )
+                return [str(pk) for pk in ids]
+        value = getattr(instance, field.name, None)
+        print(f"🔍 Fallback value for {field.name}: {value}")
+        return value
+
+    def get_relation_options(field):
+        if field.type == "relation":
+            related_model = get_model_for_slug(field.to)
+            return related_model.objects.all()
+        return None
+
+    rendered_fields = []
+    for field in collection.fields:
+        value = get_initial_value(field)
+        options = get_relation_options(field)
+        rendered = render_field(field, field.name, value, options=options)
+        rendered_fields.append(
+            {
+                "label": field.label,
+                "html": rendered,
+            }
+        )
 
     return render(
         request,

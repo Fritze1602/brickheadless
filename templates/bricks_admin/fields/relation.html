@@ -1,11 +1,46 @@
-{# RelationField UI mount point for hydration #}
-
-<div
-  class="bricks-relation"
-  data-field-type="relation"
-  data-name="{{ field.name }}"
-  data-many="{{ field.many|yesno:'true,false' }}"
-  data-source="/api/collections/{{ field.to }}/"
->
-  <!-- React mounts here -->
-</div>
+{% if field.many %}
+  <div class="mb-6">
+    <span class="block text-sm font-medium text-gray-800 mb-1">
+      {{ field.label }}
+    </span>
+    <div class="space-y-2">
+      {% for option in options %}
+        {% with id=option.pk|stringformat:"s" %}
+        <div class="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="{{ name }}-{{ id }}"
+            name="{{ name }}"
+            value="{{ id }}"
+            {% if value and id in value %}checked{% endif %}
+            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <label for="{{ name }}-{{ id }}" class="text-sm text-gray-700">
+            {{ option.name|default_if_none:option.slug|default_if_none:option.pk }}
+          </label>
+        </div>
+        {% endwith %}
+      {% endfor %}
+    </div>
+  </div>
+{% else %}
+  <div class="mb-6">
+    <label for="{{ name }}" class="block text-sm font-medium text-gray-800 mb-1">
+      {{ field.label }}
+    </label>
+    <select
+      name="{{ name }}"
+      id="{{ name }}"
+      class="block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-300/30 px-3 py-2 text-sm"
+    >
+      <option value="">– auswählen –</option>
+      {% for option in options %}
+        {% with id=option.pk|stringformat:"s" %}
+        <option value="{{ id }}" {% if id == value|stringformat:"s" %}selected{% endif %}>
+          {{ option.name|default_if_none:option.slug|default_if_none:option.pk }}
+        </option>
+        {% endwith %}
+      {% endfor %}
+    </select>
+  </div>
+{% endif %}

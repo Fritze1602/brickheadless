@@ -1,6 +1,13 @@
-<div
-  data-field-type="url"
-  data-name="{{ name }}"
-  data-label="{{ field.label }}"
-  data-value="{{ value|default_if_none:'' }}"
-></div>
+<div class="mb-6">
+  <label for="{{ name }}" class="block text-sm font-medium text-gray-800 mb-1">
+    {{ field.label }}
+  </label>
+  <input
+    type="url"
+    name="{{ name }}"
+    id="{{ name }}"
+    value="{{ value|default_if_none:'' }}"
+    class="block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-300/30 px-3 py-2 text-sm"
+    placeholder="https://example.com"
+  />
+</div>

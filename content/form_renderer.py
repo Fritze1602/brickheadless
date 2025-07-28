@@ -5,7 +5,7 @@ Renders a field by matching its type to a template.
 from django.template.loader import render_to_string
 
 
-def render_field(field, name=None, value=None):
+def render_field(field, name=None, value=None, options=None):
     """
     Renders a field using its admin template.
 
@@ -13,20 +13,32 @@ def render_field(field, name=None, value=None):
         field (BaseField): Field definition from schema (cms.py)
         name (str, optional): Input name used in the form (defaults to field.name)
         value (Any, optional): Pre-filled value (defaults to "")
+        options (QuerySet | list, optional): Used for relation fields
 
     Returns:
         str: Rendered HTML for the admin UI
     """
-    name = name or field.name  # fallback for templates that expect "name"
+    name = name or field.name
     value = value or ""
+
+    if field.type == "relation":
+        print("🔍 RENDERING RELATION FIELD:", name)
+        print("    value:", value)
+        if options is not None:
+            print("    options count:", len(options))
+
+    context = {
+        "field": field,
+        "name": name,
+        "value": value,
+    }
+
+    if field.type == "relation" and options is not None:
+        context["options"] = options
 
     return render_to_string(
         f"bricks_admin/fields/{field.type}.html",
-        {
-            "field": field,
-            "name": name,
-            "value": value,
-        },
+        context,
     )
 
 
