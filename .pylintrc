@@ -1,0 +1,9 @@
+[MASTER]
+load-plugins=pylint_django
+init-hook='import sys, os; sys.path.append("."); os.environ["DJANGO_SETTINGS_MODULE"] = "brickheadless.settings"'
+
+[MESSAGES CONTROL]
+disable =
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring

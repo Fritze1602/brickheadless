@@ -7,4 +7,22 @@
   <p class="text-gray-600">
     Wähle eine Einzelseite oder Collection aus der Navigation links, um Inhalte zu bearbeiten.
   </p>
+
+  <p>
+    <mark>Das ist ne dummy Komponente</mark>
+  </p>
+  <div data-dropdown class="relative inline-block">
+    <button data-trigger class="px-4 py-2 bg-gray-200 rounded">Aktion wählen</button>
+    <ul
+      data-menu
+      data-open="false"
+      class="absolute z-10 w-48 mt-1 bg-white border border-gray-300 rounded shadow-md divide-y divide-gray-100"
+      hidden
+    >
+      <li><a href="#" class="block px-4 py-2 hover:bg-gray-50">Bearbeiten</a></li>
+      <li><a href="#" class="block px-4 py-2 hover:bg-gray-50 text-red-600">Löschen</a></li>
+    </ul>
+  </div>
+
 {% endblock %}
+

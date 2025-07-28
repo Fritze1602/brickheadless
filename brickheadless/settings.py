@@ -51,8 +51,11 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "content",
+    "tailwind",
+    "theme",
 ]
 
+TAILWIND_APP_NAME = "theme"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

@@ -1,26 +1,17 @@
 {% load static %}
 {% load vite_tags %}
+{% load tailwind_tags %}
 <!DOCTYPE html>
 <html lang="de">
-  <head>
+    <head>
     <meta charset="UTF-8" />
     <title>{% block title %}Bricks CMS{% endblock %}</title>
 
-    {% if VITE_DEV %}
-      <!-- Vite Dev Client für HMR -->
-      <script type="module" src="http://localhost:5173/@vite/client"></script>
-      <script type="module">
-        import RefreshRuntime from "http://localhost:5173/@react-refresh";
-        RefreshRuntime.injectIntoGlobalHook(window);
-        window.$RefreshReg$ = () => {};
-        window.$RefreshSig$ = () => (type) => type;
-        window.__vite_plugin_react_preamble_installed__ = true;
-        import("http://localhost:5173/src/main.ts");
-      </script>
-    {% else %}
-      <link rel="stylesheet" href="{% vite_asset 'styles.css' %}" />
-      <script type="module" src="{% vite_asset 'app.bundle.js' %}"></script>
-    {% endif %}
+    <!-- Tailwind-Styles (gebaut durch django-tailwind) -->
+     {% tailwind_css %}
+
+    <!-- JavaScript-Komponenten (modular, ohne Build) -->
+    <script type="module" src="{% static 'init.js' %}"></script>
   </head>
 
   <body class="bg-white text-gray-900">
