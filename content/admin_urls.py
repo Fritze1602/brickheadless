@@ -24,14 +24,16 @@ urlpatterns = [
         admin_views.collection_list,
         name="cms-admin-collection-list",
     ),
+    # ADD
     path(
-        "collection/<slug:slug>/add/",
-        admin_views.add_collection_entry,
+        "cms-admin/collection/<slug:slug>/add/",
+        admin_views.collection_entry,
         name="cms-admin-collection-add",
     ),
+    # EDIT
     path(
-        "cms-admin/collection/<slug:slug>/edit/<int:pk>/",
-        admin_views.edit_collection_entry,
+        "cms-admin/collection/<slug:slug>/<int:pk>/",
+        admin_views.collection_entry,
         name="cms-admin-collection-edit",
     ),
     path("cms-admin/settings/", admin_views.settings_page, name="cms-admin-settings"),

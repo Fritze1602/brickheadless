@@ -3,6 +3,7 @@ Renders a field by matching its type to a template.
 """
 
 from django.template.loader import render_to_string
+from content.model_utils import get_model_for_slug
 
 
 def render_field(field, name=None, value=None, options=None):
@@ -20,12 +21,6 @@ def render_field(field, name=None, value=None, options=None):
     """
     name = name or field.name
     value = value or ""
-
-    if field.type == "relation":
-        print("🔍 RENDERING RELATION FIELD:", name)
-        print("    value:", value)
-        if options is not None:
-            print("    options count:", len(options))
 
     context = {
         "field": field,
@@ -89,7 +84,10 @@ def extract_data(fields, post_data, files_data):
     return result
 
 
-def render_fields(page_obj, data):
+def render_page_fields(page_obj, data):
+    """
+    Renders fields for a Page object.
+    """
     return [
         {
             "label": field.label,
@@ -97,3 +95,41 @@ def render_fields(page_obj, data):
         }
         for field in page_obj.fields
     ]
+
+
+def get_initial_value(field, instance, pk=None):
+    """
+    Gibt den initialen Wert für ein Feld zurück.
+    Bei Relation-Feldern mit ManyToMany wird eine Liste der IDs zurückgegeben.
+    """
+    if getattr(field, "type", None) == "relation" and getattr(field, "many", False):
+        if pk is not None:
+            rel = getattr(instance, field.name, None)
+            if rel is not None and hasattr(rel, "values_list"):
+                ids = list(rel.values_list("id", flat=True))
+                return [str(pk) for pk in ids]
+        return []
+    return getattr(instance, field.name, None) or ""
+
+
+def get_relation_options(field):
+    """
+    Gibt alle möglichen Optionen für ein Relation-Feld zurück.
+    """
+    if getattr(field, "type", None) == "relation":
+        related_model = get_model_for_slug(field.to)
+        return related_model.objects.all()
+    return None
+
+
+def render_collection_fields(collection, instance):
+    """
+    Rendert alle Felder einer Collection mit den gegebenen Daten vorbefüllt.
+    """
+    rendered = []
+    for field in collection.fields:
+        value = get_initial_value(field, instance)
+        options = get_relation_options(field)
+        html = render_field(field, field.name, value, options=options)
+        rendered.append({"label": field.label, "html": html})
+    return rendered

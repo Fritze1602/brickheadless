@@ -1,12 +1,10 @@
 """Admin view for editing a single custom page (e.g. homepage)."""
 
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from django.urls import reverse
-from content.helpers.pages import get_page_by_slug, save_page, save_page_and_redirect
+from content.helpers.pages import get_page_by_slug, save_page_and_redirect
 from content.helpers.ui import get_saved_timestamp
-from content.form_renderer import render_fields
+from content.form_renderer import render_page_fields
 from content.models import ContentEntry
 
 
@@ -23,7 +21,7 @@ def edit_page(request, slug):
         return save_page_and_redirect(content, page_obj, request, slug)
 
     saved, saved_time, saved_date = get_saved_timestamp(request)
-    rendered_fields = render_fields(page_obj, content.data)
+    rendered_fields = render_page_fields(page_obj, content.data)
 
     return render(
         request,
