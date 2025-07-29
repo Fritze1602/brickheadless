@@ -87,3 +87,13 @@ def extract_data(fields, post_data, files_data):
             )
 
     return result
+
+
+def render_fields(page_obj, data):
+    return [
+        {
+            "label": field.label,
+            "html": render_field(field, field.name, data.get(field.name)),
+        }
+        for field in page_obj.fields
+    ]

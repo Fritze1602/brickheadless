@@ -4,44 +4,26 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
-from django.utils.timezone import now, localtime
-import cms
+from content.helpers.pages import get_page_by_slug, save_page, save_page_and_redirect
+from content.helpers.ui import get_saved_timestamp
+from content.form_renderer import render_fields
 from content.models import ContentEntry
-from content.form_renderer import render_field, extract_data
 
 
 @login_required
 def edit_page(request, slug):
     """Render and handle form submission for editing a single page."""
-    # Get matching page object from cms.py
-    page_obj = next(
-        obj for obj in cms.__dict__.values() if getattr(obj, "slug", None) == slug
-    )
+    page_obj = get_page_by_slug(slug)
 
-    # Load or create content from the database
     content, _ = ContentEntry.objects.get_or_create(
         slug=slug, defaults={"collection": "", "data": {}}
     )
 
     if request.method == "POST":
-        data = extract_data(page_obj.fields, request.POST, request.FILES)
-        content.data = data
-        content.save()
-        redirect_url = (
-            reverse("cms-admin-edit-page", kwargs={"slug": slug}) + "?saved=1"
-        )
-        return HttpResponseRedirect(redirect_url)
+        return save_page_and_redirect(content, page_obj, request, slug)
 
-    # Render fields for the template
-    rendered_fields = []
-    saved = request.GET.get("saved") == "1"
-    saved_dt = localtime(now()) if saved else None
-    saved_time = saved_dt.strftime("%H:%M") if saved_dt else ""
-    saved_date = saved_dt.strftime("%A, %B %d") if saved_dt else ""
-
-    for field in page_obj.fields:
-        html = render_field(field, field.name, content.data.get(field.name))
-        rendered_fields.append({"label": field.label, "html": html})
+    saved, saved_time, saved_date = get_saved_timestamp(request)
+    rendered_fields = render_fields(page_obj, content.data)
 
     return render(
         request,
